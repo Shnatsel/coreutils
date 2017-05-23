@@ -57,7 +57,7 @@ fn delete(set: ExpandSet, complement: bool) {
             let filtered = buf.chars().filter(|c| { is_allowed(*c) });
             for c in filtered {
                 let stuff_to_write = c.encode_utf8(&mut char_output_buffer);
-                buffered_stdout.write(stuff_to_write.as_bytes());
+                buffered_stdout.write(stuff_to_write.as_bytes()).unwrap();
             }
         }
         buf.clear();
