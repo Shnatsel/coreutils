@@ -14,6 +14,7 @@
 
 extern crate bit_set;
 extern crate getopts;
+extern crate fnv; //hash function that's fast for small inputs like intergers
 
 #[macro_use]
 extern crate uucore;
@@ -21,7 +22,7 @@ extern crate uucore;
 use bit_set::BitSet;
 use getopts::Options;
 use std::io::{stdin, stdout, BufWriter, Write};
-use std::collections::HashMap;
+use fnv::FnvHashMap;
 
 use expand::ExpandSet;
 
@@ -67,7 +68,7 @@ fn delete(set: ExpandSet, complement: bool) {
 
 fn tr<'a>(set1: ExpandSet<'a>, mut set2: ExpandSet<'a>) {
     //let mut map = VecMap::new();
-    let mut map = HashMap::new();
+    let mut map = FnvHashMap::default();
     let stdin = stdin();
     let mut buffered_stdout = BufWriter::new(stdout());
     let mut buf = String::with_capacity(BUFFER_LEN + 4);
