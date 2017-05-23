@@ -19,7 +19,7 @@ extern crate uucore;
 
 use bit_set::BitSet;
 use getopts::Options;
-use std::io::{stdin, stdout, BufReader, BufWriter, Read, Write};
+use std::io::{stdin, stdout, BufWriter, Write};
 use std::collections::HashMap;
 
 use expand::ExpandSet;
@@ -56,8 +56,8 @@ fn delete(set: ExpandSet, complement: bool) {
         { // isolation to make borrow checker happy
             let filtered = buf.chars().filter(|c| { is_allowed(*c) });
             for c in filtered {
-                let stuff_to_write = c.encode_utf8(&mut char_output_buffer);
-                buffered_stdout.write(stuff_to_write.as_bytes()).unwrap();
+                let char_as_bytes = c.encode_utf8(&mut char_output_buffer);
+                buffered_stdout.write(char_as_bytes.as_bytes()).unwrap();
             }
         }
         buf.clear();
@@ -67,8 +67,10 @@ fn delete(set: ExpandSet, complement: bool) {
 fn tr<'a>(set1: ExpandSet<'a>, mut set2: ExpandSet<'a>) {
     //let mut map = VecMap::new();
     let mut map = HashMap::new();
-    let stdout = stdout();
+    let stdin = stdin();
+    let mut buffered_stdout = BufWriter::new(stdout());
     let mut buf = String::with_capacity(BUFFER_LEN + 4);
+    let mut char_output_buffer: [u8; 4] = [0;4];
 
     let mut s2_prev = '_';
     for i in set1 {
@@ -77,21 +79,20 @@ fn tr<'a>(set1: ExpandSet<'a>, mut set2: ExpandSet<'a>) {
         map.insert(i as usize, s2_prev);
     }
 
-    let mut reader = BufReader::new(stdin());
-    let mut writer = BufWriter::new(stdout);
+    stdin.lock();
 
-    while let Ok(length) = reader.read_to_string(&mut buf) {
+    while let Ok(length) = stdin.read_line(&mut buf) {
         if length == 0 { break }
 
-        {
-            let mut chars = buf.chars();
-
-            while let Some(ch) = chars.next() {
-                let trc = match map.get(&(ch as usize)) {
+        { // isolation to make borrow checker happy
+            let output_stream = buf.chars()
+               .map(|c| match map.get(&(c as usize)) {
                     Some(t) => *t,
-                    None => ch,
-                };
-                safe_unwrap!(writer.write_all(format!("{}", trc).as_ref()));
+                    None => c,
+                });
+            for c in output_stream {
+                let char_as_bytes = c.encode_utf8(&mut char_output_buffer);
+                buffered_stdout.write(char_as_bytes.as_bytes()).unwrap();
             }
         }
 
