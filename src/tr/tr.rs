@@ -32,6 +32,7 @@ const BUFFER_LEN: usize = 1024;
 
 fn delete(set: ExpandSet, complement: bool) {
     let mut bset = BitSet::new();
+    let stdin = stdin();
     let mut buffered_stdout = BufWriter::new(stdout());
     let mut buf = String::with_capacity(BUFFER_LEN + 4);
     let mut char_output_buffer: [u8; 4] = [0;4];
@@ -48,16 +49,15 @@ fn delete(set: ExpandSet, complement: bool) {
         }
     };
 
-    let mut reader = BufReader::new(stdin());
+    stdin.lock();
 
-    while let Ok(length) = reader.read_to_string(&mut buf) {
+    while let Ok(length) = stdin.read_line(&mut buf) {
         if length == 0 { break }
-
         { // isolation to make borrow checker happy
-            let filtered = buf.chars()
-                              .filter(|c| { is_allowed(*c) });
+            let filtered = buf.chars().filter(|c| { is_allowed(*c) });
             for c in filtered {
-                buffered_stdout.write(c.encode_utf8(&mut char_output_buffer).as_bytes());
+                let stuff_to_write = c.encode_utf8(&mut char_output_buffer);
+                buffered_stdout.write(stuff_to_write.as_bytes());
             }
         }
         buf.clear();
