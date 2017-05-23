@@ -6,6 +6,7 @@
  * (c) Michael Gehring <mg@ebfe.org>
  * (c) kwantam <kwantam@gmail.com>
  *     20150428 created `expand` module to eliminate most allocs during setup
+ * (c) Sergey "Shnatsel" Davidoff <shnatsel@gmail.com>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
